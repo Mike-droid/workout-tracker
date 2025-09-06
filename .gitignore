@@ -282,3 +282,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/node,nextjs,windows,macos,linux,visualstudiocode,dotenv,git
+prisma/generated/*
