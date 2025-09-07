@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma:seed:exercises": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
