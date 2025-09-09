@@ -7,7 +7,8 @@ type Params = {
 
 export async function GET(_req: Request, { params }: Params) {
 	try {
-		const exercise = await exerciseService.getById(params.id);
+		const { id } = await params; // for NEXT V15
+		const exercise = await exerciseService.getById(id);
 		if (!exercise) {
 			return NextResponse.json(
 				{ error: 'Exercise not found' },

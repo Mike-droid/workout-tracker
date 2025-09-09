@@ -10,7 +10,9 @@ export const exerciseService = {
 	},
 
 	async getByName(name: string) {
-		return prisma.exercise.findUnique({ where: { name } });
+		return prisma.exercise.findMany({
+			where: { name: { contains: name, mode: 'insensitive' } },
+		});
 	},
 
 	async getByMuscleGroup(muscleGroup: string) {
