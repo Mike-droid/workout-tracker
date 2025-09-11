@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const userService = {
 	async register(email: string, password: string, name: string) {

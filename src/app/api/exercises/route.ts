@@ -7,7 +7,6 @@ export async function GET(req: Request) {
 		const query = searchParams.get('q');
 
 		if (query) {
-			console.log('🚀 ~ GET ~ query:', query);
 			const results = await exerciseService.getByName(query);
 
 			if (!results || results.length === 0) {
