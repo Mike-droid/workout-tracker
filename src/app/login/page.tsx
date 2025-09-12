@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
     const { login } = useAuth();
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,8 @@ export default function LoginPage() {
             }
 
             const data = await res.json();
-            login(data.token); // guardamos el token en localStorage
+            login(data.token);
+            router.push('/workouts');
         } catch (err: unknown) {
             setError(err.message);
         }
