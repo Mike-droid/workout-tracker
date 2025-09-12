@@ -33,4 +33,17 @@ export const workoutService = {
 			},
 		});
 	},
+
+	getWorkoutsByUserId(userId: string) {
+		return prisma.workoutSession.findMany({
+			where: {
+				userId,
+			},
+			include: {
+				exercises: {
+					include: { exercise: true },
+				},
+			},
+		});
+	},
 };

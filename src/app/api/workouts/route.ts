@@ -2,6 +2,29 @@ import { NextResponse } from 'next/server';
 import { workoutService } from '@/services/workoutService';
 import { verifyJWT } from '@/lib/auth';
 
+export async function GET(req: Request) {
+	try {
+		const authHeader = req.headers.get('authorization');
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+		}
+		const token = authHeader.split(' ')[1];
+		const payload = await verifyJWT<{ userId: string }>(token);
+
+		if (!payload) {
+			return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+		}
+
+		const workouts = await workoutService.getWorkoutsByUserId(payload.userId);
+		return NextResponse.json(workouts);
+	} catch (error) {
+		return NextResponse.json(
+			{ error: `Error fetching workouts: ${error}` },
+			{ status: 500 }
+		);
+	}
+}
+
 export async function POST(req: Request) {
 	try {
 		const authHeader = req.headers.get('authorization');
