@@ -11,6 +11,7 @@ interface ButtonProps {
     type?: "button" | "submit" | "reset";
     className?: string;
     variant?: "primary" | "secondary" | "danger";
+    disabled?: boolean;
 }
 
 export function Button({
@@ -20,6 +21,7 @@ export function Button({
     type = "button",
     className,
     variant = "primary",
+    disabled = false,
 }: ButtonProps) {
     const baseStyles =
         "px-4 py-2 rounded font-medium transition-colors duration-200";
@@ -41,7 +43,7 @@ export function Button({
     }
 
     return (
-        <button onClick={onClick} type={type} className={combined}>
+        <button onClick={onClick} type={type} className={combined} disabled={disabled}>
             {children}
         </button>
     );

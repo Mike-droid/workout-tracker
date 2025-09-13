@@ -2,11 +2,40 @@
 
 import { useEffect, useState } from "react";
 import { WorkoutSessionCard } from "@/app/components/WorkoutSessionCard";
+import { WorkoutSession as WS, Exercise as Ex } from '../../../prisma/generated/index';
+import { Button } from "../components/button";
+
+type WorkoutExerciseCreate = {
+    exerciseId: string;
+    sets: number;
+    reps: number;
+    weight?: number;
+};
+
+type WorkoutCreate = {
+    date?: string;
+    notes?: string;
+    exercises: WorkoutExerciseCreate[];
+};
 
 export default function WorkoutsPage() {
-    const [workouts, setWorkouts] = useState([]);
+    const [workouts, setWorkouts] = useState<WS[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [exercises, setExercises] = useState<Ex[]>([]);
+    const [loadingExercises, setLoadingExercises] = useState(false);
+
+    // Form state
+    const [notes, setNotes] = useState("");
+    const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
+    const [sets, setSets] = useState<number>(3);
+    const [reps, setReps] = useState<number>(10);
+    const [weight, setWeight] = useState<number | "">("");
+    const [sessionExercises, setSessionExercises] = useState<WorkoutExerciseCreate[]>([]);
+    const [submitting, setSubmitting] = useState(false);
+
+
+    // Load workouts on mount
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -15,34 +44,219 @@ export default function WorkoutsPage() {
         }
 
         fetch("/api/workouts", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
         })
-            .then((res) => res.json())
-            .then((data) => {
-                console.info("🚀 ~ WorkoutsPage ~ data:", data)
+            .then((res) => {
+                if (!res.ok) throw new Error("Error fetching workouts");
+                return res.json();
+            })
+            .then((data: WS[]) => {
                 setWorkouts(data);
-                setLoading(false);
             })
             .catch((err) => {
                 console.error("Error fetching workouts:", err);
-                setLoading(false);
-            });
+            })
+            .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        getExercises();
+    }, []);
+
+    function addExerciseToSession() {
+        if (!selectedExerciseId) return;
+        const ex: WorkoutExerciseCreate = {
+            exerciseId: selectedExerciseId,
+            sets,
+            reps,
+            weight: weight === "" ? undefined : Number(weight),
+        };
+        setSessionExercises((prev) => [...prev, ex]);
+        // Opcional: reset inputs
+        setSelectedExerciseId("");
+        setSets(3);
+        setReps(8);
+        setWeight("");
+    }
+
+    async function getExercises() {
+        setLoadingExercises(true);
+        try {
+            const res = await fetch("/api/exercises");
+            if (!res.ok) throw new Error("Error fetching exercises");
+            const data = (await res.json()) as Ex[];
+            setExercises(data);
+        } catch (err) {
+            console.error("Error fetching exercises:", err);
+        } finally {
+            setLoadingExercises(false);
+        }
+    }
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (sessionExercises.length === 0) {
+            alert("Agrega al menos un ejercicio a la sesión.");
+            return;
+        }
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("No estás autenticado");
+            return;
+        }
+
+        setSubmitting(true);
+
+        const payload: WorkoutCreate = {
+            date: new Date().toISOString(),
+            notes: notes || undefined,
+            exercises: sessionExercises,
+        };
+
+        try {
+            const res = await fetch("/api/workouts", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err?.error || "Error creating workout");
+            }
+
+            const created = (await res.json()) as WS;
+
+            // actualizar lista (usar función con prev para evitar problemas de closure)
+            setWorkouts((prev) => [...prev, created]);
+
+            // reset form
+            setNotes("");
+            setSessionExercises([]);
+        } catch (err: any) {
+            console.error("Error posting workout:", err);
+            alert(err.message || "Error creating workout");
+        } finally {
+            setSubmitting(false);
+        }
+    }
 
     if (loading) return <div>Cargando workouts...</div>;
 
     if (!workouts.length) return <div>No tienes workouts aún</div>;
 
     return (
-        <div>
-            <h1>Mis Workouts</h1>
-            <ul>
-                {workouts.map((w) => (
-                    <WorkoutSessionCard key={w.id} workout={w} />
-                ))}
-            </ul>
+        <div className="p-4">
+            <h1 className="text-2xl font-bold mb-4">Mis Workouts</h1>
+
+            <form onSubmit={handleSubmit} className="bg-white text-black p-4 rounded-md shadow-md border-2 mb-6">
+                <h3 className="font-semibold mb-2">Crear sesión de entrenamiento</h3>
+
+                <label className="block mb-2">
+                    <span className="text-sm">Notas</span>
+                    <input
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="block w-full border px-2 py-1 rounded mt-1"
+                        placeholder="Ej: Día de brazo"
+                    />
+                </label>
+
+                <div className="grid grid-cols-4 gap-2 items-end">
+                    <div>
+                        <label className="text-sm">Ejercicio</label>
+                        <select
+                            value={selectedExerciseId}
+                            onChange={(e) => setSelectedExerciseId(e.target.value)}
+                            onFocus={() => !exercises.length && getExercises()}
+                            className="block w-full border px-2 py-1 rounded mt-1"
+                        >
+                            <option value="">{loadingExercises ? "Cargando..." : "Selecciona ejercicio"}</option>
+                            {exercises.map((ex) => (
+                                <option key={ex.id} value={ex.id}>
+                                    {ex.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="text-sm">Sets</label>
+                        <input
+                            type="number"
+                            min={1}
+                            value={sets}
+                            onChange={(e) => setSets(Number(e.target.value))}
+                            className="block w-full border px-2 py-1 rounded mt-1"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm">Reps</label>
+                        <input
+                            type="number"
+                            min={1}
+                            value={reps}
+                            onChange={(e) => setReps(Number(e.target.value))}
+                            className="block w-full border px-2 py-1 rounded mt-1"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-sm">Peso (kg)</label>
+                        <input
+                            type="number"
+                            min={0}
+                            value={weight === "" ? "" : String(weight)}
+                            onChange={(e) => setWeight(e.target.value === "" ? "" : Number(e.target.value))}
+                            className="block w-full border px-2 py-1 rounded mt-1"
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-3 flex gap-2">
+                    <Button type="button" onClick={addExerciseToSession} variant="secondary">
+                        Agregar ejercicio
+                    </Button>
+                    <Button type="submit" variant="primary" disabled={submitting}>
+                        {submitting ? "Creando..." : "Crear sesión"}
+                    </Button>
+                </div>
+
+                {sessionExercises.length > 0 && (
+                    <div className="mt-4">
+                        <h4 className="font-medium">Ejercicios de la sesión</h4>
+                        <ul className="mt-2 space-y-2">
+                            {sessionExercises.map((ex, idx) => {
+                                const exMeta = exercises.find((e) => e.id === ex.exerciseId);
+                                return (
+                                    <li key={idx} className="border rounded p-2 bg-gray-50">
+                                        <strong>{exMeta?.name || ex.exerciseId}</strong> — {ex.sets}x{ex.reps} {ex.weight ? `@ ${ex.weight}kg` : ""}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+            </form>
+
+            <div>
+                {workouts.length === 0 ? (
+                    <div>No tienes workouts aún</div>
+                ) : (
+                    <ul>
+                        {workouts.map((w) => (
+                            <li key={w.id}>
+                                <WorkoutSessionCard workout={w as any} />
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
     );
 }
