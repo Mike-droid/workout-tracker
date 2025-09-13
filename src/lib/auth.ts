@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { jwtDecode } from 'jwt-decode';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -19,6 +20,20 @@ export async function verifyJWT<T>(token: string): Promise<T | null> {
 		return payload as T;
 	} catch (error) {
 		console.error('JWT verification failed:', error);
+		return null;
+	}
+}
+
+interface TokenPayload {
+	userId: string;
+	email: string;
+	name?: string;
+}
+
+export function getUserFromToken(token: string): TokenPayload | null {
+	try {
+		return jwtDecode<TokenPayload>(token);
+	} catch {
 		return null;
 	}
 }

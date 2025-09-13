@@ -28,9 +28,13 @@ export const userService = {
 			throw new Error('Email or password incorrect');
 		}
 
-		const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-			expiresIn: '7d',
-		});
+		const token = jwt.sign(
+			{ userId: user.id, email: user.email, name: user.name },
+			JWT_SECRET,
+			{
+				expiresIn: '7d',
+			}
+		);
 
 		return { token };
 	},
