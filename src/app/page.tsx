@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { getUserFromToken } from "@/lib/auth";
+import { Button } from "./components/button";
 
 export default function HomePage() {
   const { isLoggedIn, logout } = useAuth();
@@ -13,18 +14,12 @@ export default function HomePage() {
       <main className="flex flex-col items-center justify-center min-h-screen gap-4">
         <h1 className="text-2xl font-bold">Bienvenido a Workout Tracker</h1>
         <div className="flex gap-4">
-          <a
-            href="/login"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
+          <Button href="/login" variant="secondary">
             Login
-          </a>
-          <a
-            href="/signup"
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          >
+          </Button>
+          <Button href="/signup" variant="primary">
             Sign Up
-          </a>
+          </Button>
         </div>
       </main>
     );
@@ -36,15 +31,12 @@ export default function HomePage() {
         <h1 className="text-xl font-bold text-black">
           Bienvenido de nuevo {user?.name || "👋"}
         </h1>
-        <a href="/workouts" className="text-black">
+        <Button href="/workouts" variant="primary">
           Entrenamientos
-        </a>
-        <button
-          onClick={logout}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 hover:cursor-pointer"
-        >
+        </Button>
+        <Button onClick={logout} variant="danger">
           Logout
-        </button>
+        </Button>
       </header>
 
       <section className="flex flex-col items-center justify-center flex-1">

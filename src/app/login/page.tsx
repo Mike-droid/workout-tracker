@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "../components/button";
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -57,12 +58,9 @@ export default function LoginPage() {
                 className="border px-2 py-1 rounded"
                 required
             />
-            <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
+            <Button type="submit" variant="primary">
                 Login
-            </button>
+            </Button>
 
             {error && <p className="text-red-500">{error}</p>}
         </form>
