@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 
 export const exerciseService = {
 	async getAll() {
-		return prisma.exercise.findMany();
+		return prisma.exercise.findMany({ orderBy: { name: 'asc' } });
 	},
 
 	async getById(id: string) {
