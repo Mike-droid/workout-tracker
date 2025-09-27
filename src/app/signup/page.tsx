@@ -60,7 +60,7 @@ export default function SignUpPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="flex items-center justify-center bg-gray-900 h-[calc(100vh-5rem)]">
             <div className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
                 <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign Up</h2>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

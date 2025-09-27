@@ -49,6 +49,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="border px-2 py-1 rounded"
                 required
+                autoComplete="email"
             />
             <input
                 type="password"
@@ -57,6 +58,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="border px-2 py-1 rounded"
                 required
+                autoComplete="current-password"
             />
             <Button type="submit" variant="primary">
                 Login

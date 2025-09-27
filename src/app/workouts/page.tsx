@@ -1,9 +1,11 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { WorkoutSessionCard } from "@/app/components/WorkoutSessionCard";
 import { WorkoutSession as WS, Exercise as Ex } from '../../../prisma/generated/index';
 import { Button } from "../components/button";
+import { Header } from "../components/Header";
 
 type WorkoutExerciseCreate = {
     exerciseId: string;
@@ -30,6 +32,7 @@ export default function WorkoutsPage() {
     const [weight, setWeight] = useState<number | "">("");
     const [sessionExercises, setSessionExercises] = useState<WorkoutExerciseCreate[]>([]);
     const [submitting, setSubmitting] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -139,113 +142,116 @@ export default function WorkoutsPage() {
     if (loading) return <div>Loading workouts...</div>;
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">My Workouts</h1>
+        <>
+            <Header username={user?.name || "👋"} />
+            <div className="p-4">
+                <h1 className="text-2xl font-bold mb-4">My Workouts</h1>
 
-            <form onSubmit={handleSubmit} className="bg-white text-black p-4 rounded-md shadow-md border-2 mb-6">
-                <h3 className="font-semibold mb-2">Create workout session</h3>
+                <form onSubmit={handleSubmit} className="bg-white text-black p-4 rounded-md shadow-md border-2 mb-6">
+                    <h3 className="font-semibold mb-2">Create workout session</h3>
 
-                <label className="block mb-2">
-                    <span className="text-sm">Notes</span>
-                    <input
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="block w-full border px-2 py-1 rounded mt-1"
-                        placeholder="Ex: Pull day"
-                    />
-                </label>
-
-                <div className="grid grid-cols-4 gap-2 items-end">
-                    <div>
-                        <label className="text-sm">Exercise</label>
-                        <select
-                            value={selectedExerciseId}
-                            onChange={(e) => setSelectedExerciseId(e.target.value)}
-                            onFocus={() => !exercises.length && getExercises()}
+                    <label className="block mb-2">
+                        <span className="text-sm">Notes</span>
+                        <input
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
                             className="block w-full border px-2 py-1 rounded mt-1"
-                        >
-                            <option value="">{loadingExercises ? "Loading..." : "Select exercise"}</option>
-                            {exercises.map((ex) => (
-                                <option key={ex.id} value={ex.id}>
-                                    {ex.name}
-                                </option>
+                            placeholder="Ex: Pull day"
+                        />
+                    </label>
+
+                    <div className="grid grid-cols-4 gap-2 items-end">
+                        <div>
+                            <label className="text-sm">Exercise</label>
+                            <select
+                                value={selectedExerciseId}
+                                onChange={(e) => setSelectedExerciseId(e.target.value)}
+                                onFocus={() => !exercises.length && getExercises()}
+                                className="block w-full border px-2 py-1 rounded mt-1"
+                            >
+                                <option value="">{loadingExercises ? "Loading..." : "Select exercise"}</option>
+                                {exercises.map((ex) => (
+                                    <option key={ex.id} value={ex.id}>
+                                        {ex.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-sm">Sets</label>
+                            <input
+                                type="number"
+                                min={1}
+                                value={sets}
+                                onChange={(e) => setSets(Number(e.target.value))}
+                                className="block w-full border px-2 py-1 rounded mt-1"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm">Reps</label>
+                            <input
+                                type="number"
+                                min={1}
+                                value={reps}
+                                onChange={(e) => setReps(Number(e.target.value))}
+                                className="block w-full border px-2 py-1 rounded mt-1"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm">Weight (kg)</label>
+                            <input
+                                type="number"
+                                min={0}
+                                value={weight === "" ? "" : String(weight)}
+                                onChange={(e) => setWeight(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="block w-full border px-2 py-1 rounded mt-1"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-3 flex gap-2">
+                        <Button type="button" onClick={addExerciseToSession} variant="secondary">
+                            Add exercise
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={submitting}>
+                            {submitting ? "Creating..." : "Create session"}
+                        </Button>
+                    </div>
+
+                    {sessionExercises.length > 0 && (
+                        <div className="mt-4">
+                            <h4 className="font-medium">Session exercises</h4>
+                            <ul className="mt-2 space-y-2">
+                                {sessionExercises.map((ex, idx) => {
+                                    const exMeta = exercises.find((e) => e.id === ex.exerciseId);
+                                    return (
+                                        <li key={idx} className="border rounded p-2 bg-gray-50">
+                                            <strong>{exMeta?.name || ex.exerciseId}</strong> — {ex.sets}x{ex.reps} {ex.weight ? `@ ${ex.weight}kg` : ""}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+                </form>
+
+                <div>
+                    {workouts.length === 0 ? (
+                        <h2 className="text-4xl font-bold">You do not have any workouts yet</h2>
+                    ) : (
+                        <ul className="mt-4 space-y-2 grid grid-cols-3 gap-4">
+                            {workouts.map((w) => (
+                                <li key={w.id}>
+                                    <WorkoutSessionCard workout={w as never} />
+                                </li>
                             ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="text-sm">Sets</label>
-                        <input
-                            type="number"
-                            min={1}
-                            value={sets}
-                            onChange={(e) => setSets(Number(e.target.value))}
-                            className="block w-full border px-2 py-1 rounded mt-1"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="text-sm">Reps</label>
-                        <input
-                            type="number"
-                            min={1}
-                            value={reps}
-                            onChange={(e) => setReps(Number(e.target.value))}
-                            className="block w-full border px-2 py-1 rounded mt-1"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="text-sm">Weight (kg)</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={weight === "" ? "" : String(weight)}
-                            onChange={(e) => setWeight(e.target.value === "" ? "" : Number(e.target.value))}
-                            className="block w-full border px-2 py-1 rounded mt-1"
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                    <Button type="button" onClick={addExerciseToSession} variant="secondary">
-                        Add exercise
-                    </Button>
-                    <Button type="submit" variant="primary" disabled={submitting}>
-                        {submitting ? "Creating..." : "Create session"}
-                    </Button>
-                </div>
-
-                {sessionExercises.length > 0 && (
-                    <div className="mt-4">
-                        <h4 className="font-medium">Session exercises</h4>
-                        <ul className="mt-2 space-y-2">
-                            {sessionExercises.map((ex, idx) => {
-                                const exMeta = exercises.find((e) => e.id === ex.exerciseId);
-                                return (
-                                    <li key={idx} className="border rounded p-2 bg-gray-50">
-                                        <strong>{exMeta?.name || ex.exerciseId}</strong> — {ex.sets}x{ex.reps} {ex.weight ? `@ ${ex.weight}kg` : ""}
-                                    </li>
-                                );
-                            })}
                         </ul>
-                    </div>
-                )}
-            </form>
-
-            <div>
-                {workouts.length === 0 ? (
-                    <h2 className="text-4xl font-bold">You do not have any workouts yet</h2>
-                ) : (
-                    <ul className="mt-4 space-y-2 grid grid-cols-3 gap-4">
-                        {workouts.map((w) => (
-                            <li key={w.id}>
-                                <WorkoutSessionCard workout={w as never} />
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
