@@ -12,7 +12,7 @@ export default function HomePage() {
   if (!isLoggedIn) {
     return (
       <main className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-2xl font-bold">Bienvenido a Workout Tracker</h1>
+        <h1 className="text-2xl font-bold">Welcome to Workout Tracker</h1>
         <div className="flex gap-4">
           <Button href="/login" variant="secondary">
             Login
@@ -29,10 +29,10 @@ export default function HomePage() {
     <main className="flex flex-col min-h-screen">
       <header className="flex justify-between items-center p-4 bg-gray-100 shadow">
         <h1 className="text-xl font-bold text-black">
-          Bienvenido de nuevo {user?.name || "👋"}
+          Welcome back {user?.name || "👋"}
         </h1>
         <Button href="/workouts" variant="primary">
-          Entrenamientos
+          Workouts
         </Button>
         <Button onClick={logout} variant="danger">
           Logout
@@ -40,7 +40,7 @@ export default function HomePage() {
       </header>
 
       <section className="flex flex-col items-center justify-center flex-1">
-        <p className="text-lg">Tu panel de entrenamientos está listo 💪</p>
+        <p className="text-lg">Your workouts panel is ready 💪</p>
       </section>
     </main>
   );

@@ -21,11 +21,8 @@ type WorkoutCreate = {
 export default function WorkoutsPage() {
     const [workouts, setWorkouts] = useState<WS[]>([]);
     const [loading, setLoading] = useState(true);
-
     const [exercises, setExercises] = useState<Ex[]>([]);
     const [loadingExercises, setLoadingExercises] = useState(false);
-
-    // Form state
     const [notes, setNotes] = useState("");
     const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
     const [sets, setSets] = useState<number>(3);
@@ -34,8 +31,6 @@ export default function WorkoutsPage() {
     const [sessionExercises, setSessionExercises] = useState<WorkoutExerciseCreate[]>([]);
     const [submitting, setSubmitting] = useState(false);
 
-
-    // Load workouts on mount
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -72,7 +67,6 @@ export default function WorkoutsPage() {
             weight: weight === "" ? undefined : Number(weight),
         };
         setSessionExercises((prev) => [...prev, ex]);
-        // Opcional: reset inputs
         setSelectedExerciseId("");
         setSets(3);
         setReps(8);
@@ -96,13 +90,13 @@ export default function WorkoutsPage() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (sessionExercises.length === 0) {
-            alert("Agrega al menos un ejercicio a la sesión.");
+            alert("Add at least one exercise to the session.");
             return;
         }
 
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("No estás autenticado");
+            alert("Not authenticated");
             return;
         }
 
@@ -130,52 +124,47 @@ export default function WorkoutsPage() {
             }
 
             const created = (await res.json()) as WS;
-
-            // actualizar lista (usar función con prev para evitar problemas de closure)
             setWorkouts((prev) => [...prev, created]);
 
-            // reset form
             setNotes("");
             setSessionExercises([]);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error posting workout:", err);
-            alert(err.message || "Error creating workout");
+            alert((err as Error).message || "Error creating workout");
         } finally {
             setSubmitting(false);
         }
     }
 
-    if (loading) return <div>Cargando workouts...</div>;
-
-    if (!workouts.length) return <div>No tienes workouts aún</div>;
+    if (loading) return <div>Loading workouts...</div>;
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Mis Workouts</h1>
+            <h1 className="text-2xl font-bold mb-4">My Workouts</h1>
 
             <form onSubmit={handleSubmit} className="bg-white text-black p-4 rounded-md shadow-md border-2 mb-6">
-                <h3 className="font-semibold mb-2">Crear sesión de entrenamiento</h3>
+                <h3 className="font-semibold mb-2">Create workout session</h3>
 
                 <label className="block mb-2">
-                    <span className="text-sm">Notas</span>
+                    <span className="text-sm">Notes</span>
                     <input
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         className="block w-full border px-2 py-1 rounded mt-1"
-                        placeholder="Ej: Día de brazo"
+                        placeholder="Ex: Pull day"
                     />
                 </label>
 
                 <div className="grid grid-cols-4 gap-2 items-end">
                     <div>
-                        <label className="text-sm">Ejercicio</label>
+                        <label className="text-sm">Exercise</label>
                         <select
                             value={selectedExerciseId}
                             onChange={(e) => setSelectedExerciseId(e.target.value)}
                             onFocus={() => !exercises.length && getExercises()}
                             className="block w-full border px-2 py-1 rounded mt-1"
                         >
-                            <option value="">{loadingExercises ? "Cargando..." : "Selecciona ejercicio"}</option>
+                            <option value="">{loadingExercises ? "Loading..." : "Select exercise"}</option>
                             {exercises.map((ex) => (
                                 <option key={ex.id} value={ex.id}>
                                     {ex.name}
@@ -207,7 +196,7 @@ export default function WorkoutsPage() {
                     </div>
 
                     <div>
-                        <label className="text-sm">Peso (kg)</label>
+                        <label className="text-sm">Weight (kg)</label>
                         <input
                             type="number"
                             min={0}
@@ -220,16 +209,16 @@ export default function WorkoutsPage() {
 
                 <div className="mt-3 flex gap-2">
                     <Button type="button" onClick={addExerciseToSession} variant="secondary">
-                        Agregar ejercicio
+                        Add exercise
                     </Button>
                     <Button type="submit" variant="primary" disabled={submitting}>
-                        {submitting ? "Creando..." : "Crear sesión"}
+                        {submitting ? "Creating..." : "Create session"}
                     </Button>
                 </div>
 
                 {sessionExercises.length > 0 && (
                     <div className="mt-4">
-                        <h4 className="font-medium">Ejercicios de la sesión</h4>
+                        <h4 className="font-medium">Session exercises</h4>
                         <ul className="mt-2 space-y-2">
                             {sessionExercises.map((ex, idx) => {
                                 const exMeta = exercises.find((e) => e.id === ex.exerciseId);
@@ -246,12 +235,12 @@ export default function WorkoutsPage() {
 
             <div>
                 {workouts.length === 0 ? (
-                    <div>No tienes workouts aún</div>
+                    <h2 className="text-4xl font-bold">You do not have any workouts yet</h2>
                 ) : (
-                    <ul>
+                    <ul className="mt-4 space-y-2 grid grid-cols-3 gap-4">
                         {workouts.map((w) => (
                             <li key={w.id}>
-                                <WorkoutSessionCard workout={w as any} />
+                                <WorkoutSessionCard workout={w as never} />
                             </li>
                         ))}
                     </ul>

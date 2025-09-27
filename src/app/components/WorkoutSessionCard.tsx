@@ -15,8 +15,8 @@ interface Exercise {
 interface WorkoutSession {
     id: string;
     date: string;
-    notes?: string;
     exercises: Exercise[];
+    notes?: string;
 }
 
 export function WorkoutSessionCard({ workout }: { workout: WorkoutSession }) {
@@ -24,7 +24,6 @@ export function WorkoutSessionCard({ workout }: { workout: WorkoutSession }) {
 
     return (
         <div className="border rounded-lg p-4 shadow-sm mb-4">
-            {/* Header */}
             <div
                 className="flex justify-between items-center cursor-pointer"
                 onClick={() => setExpanded((prev) => !prev)}
@@ -34,11 +33,11 @@ export function WorkoutSessionCard({ workout }: { workout: WorkoutSession }) {
                         {new Date(workout.date).toDateString()}
                     </h2>
                     <p className="text-sm text-gray-500">
-                        {workout.exercises.length} ejercicios
+                        {workout.exercises.length} exercises
                     </p>
                 </div>
                 <button className="text-blue-600 hover:underline">
-                    {expanded ? "Contraer ▲" : "Expandir ▼"}
+                    {expanded ? "Collapse ▲" : "Expand ▼"}
                 </button>
             </div>
 
@@ -46,7 +45,7 @@ export function WorkoutSessionCard({ workout }: { workout: WorkoutSession }) {
             {expanded && (
                 <div className="mt-4 space-y-2">
                     {workout.notes && (
-                        <p className="text-white italic">Notas: {workout.notes}</p>
+                        <p className="text-white italic">Notes: {workout.notes}</p>
                     )}
                     <ul className="space-y-2">
                         {workout.exercises.map((ex) => (

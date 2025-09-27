@@ -32,7 +32,7 @@ export default function LoginPage() {
             login(data.token);
             router.push('/workouts');
         } catch (err: unknown) {
-            setError(err.message);
+            setError(err instanceof Error ? err.message : "Login failed");
         }
     };
 
